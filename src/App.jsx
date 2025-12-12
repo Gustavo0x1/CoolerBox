@@ -7,11 +7,7 @@ import ProductScroll3D from "./component";
 export default function App() {
   return (
     <>
-      {/* Conteúdo antes (hero, intro, etc.) */}
-      <div style={introStyle}>
-        <h1>Conheça o produto</h1>
-        <p>Role para explorar em 3D</p>
-      </div>
+
 
       {/* Produto 3D com scroll estilo Apple */}
       <ProductScroll3D />
