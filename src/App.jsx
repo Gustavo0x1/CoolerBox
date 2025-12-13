@@ -9,13 +9,11 @@ export default function App() {
     <>
 
 
-      {/* Produto 3D com scroll estilo Apple */}
+
       <ProductScroll3D />
 
-      {/* Conteúdo depois */}
-      <div style={outroStyle}>
-        <h2>Pronto para a próxima geração</h2>
-      </div>
+
+      
     </>
   );
 }

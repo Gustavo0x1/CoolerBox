@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, Suspense } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame,useThree } from "@react-three/fiber";
 import {
   OrbitControls,
   useGLTF,
@@ -23,8 +23,21 @@ import {
 } from "lucide-react";
 import * as THREE from "three";
 import "./App.css";
+function CameraControls({ enabled }) {
+  const { camera, gl } = useThree();
 
-// Componente do Modelo 3D (Mantido igual, apenas lógica visual)
+  return (
+    <OrbitControls
+      args={[camera, gl.domElement]}
+      enablePan={false}
+      enableZoom
+      enabled={enabled}
+      minDistance={2}
+      maxDistance={8}
+    />
+  );
+}
+
 function ProductModel({
   modelPath,
   animationName,
@@ -66,8 +79,14 @@ const views = [
     description: "Estrutura otimizada para máximo isolamento",
     modelPath: "./models/produto.glb", 
     animation: "Tampa_soloAction",
-    cameraPosition: [3, 3, 4],
-    scale: 1,
+  'camera': {
+      desktop: [3, 3, 4],
+      mobile: [0, 1.5, 6]
+    },
+     scale: {
+      desktop: 1,
+      mobile: 0.9
+    }
   },
   {
     id: "internal",
@@ -75,8 +94,15 @@ const views = [
     description: "Espaço interno de 15L com revestimento em alumínio",
     modelPath: "./models/produto.glb",
     animation: "Abrir",
-    cameraPosition: [0, 1, 3],
-    scale: 1.2,
+    camera: {
+      desktop: [0, 1, 3],
+      mobile: [0, 1.2, 5]
+    },
+
+    scale: {
+      desktop: 1.2,
+      mobile: 1
+    }
   },
   {
     id: "system",
@@ -84,8 +110,15 @@ const views = [
     description: "Sistema dual-core de pastilhas TEC1-12706",
     modelPath: "./models/ifrost_explodedview.glb",
     animation: "Abrir",
-    cameraPosition: [0, 2, 6],
-    scale: 1,
+       camera: {
+      desktop: [0, 2, 6],
+      mobile: [0, 1.8, 7]
+    },
+
+    scale: {
+      desktop: 1,
+      mobile: 0.8
+    }
   },
 ];
 
@@ -129,7 +162,7 @@ export default function ProductShowcase() {
   const nextView = () => setCurrentView((prev) => (prev + 1) % views.length);
   const prevView = () => setCurrentView((prev) => (prev - 1 + views.length) % views.length);
   const resetCamera = () => controlsRef.current?.reset();
-  
+
   const handleCanvasClick = () => {
     if (isMobile && !isInteractive) {
       setIsInteractive(true);
@@ -143,10 +176,12 @@ export default function ProductShowcase() {
   };
 
   const currentViewData = views[currentView];
-
+  const cameraPosition = isMobile
+  ? currentViewData.camera.mobile
+  : currentViewData.camera.desktop;
   return (
     <div className="app-container">
-      {/* ===== HERO SECTION ===== */}
+
       <section className="hero-section">
         <div className="hero-bg-glow" />
         <span className="hero-tagline">Projeto: FrostBox</span>
@@ -161,42 +196,50 @@ export default function ProductShowcase() {
           <span className="scroll-text">Deslize para ver</span>
           <ChevronDown style={{ width: 40, height: 40 }} />
         </div>
-      {/* ===== 3D SCROLL EXPERIENCE ===== */}
+
       <div ref={scrollContainerRef} className="scroll-container">
         <div className="sticky-canvas-wrapper">
           <div className="canvas-container">
-            {/* LÓGICA DE RENDERIZAÇÃO DO CANVAS (Simplificada para brevidade, usar a mesma do original) */}
+
              <Canvas shadows>
-                <PerspectiveCamera makeDefault position={currentViewData.cameraPosition} fov={50} />
+ <PerspectiveCamera
+    key={currentViewData.id}
+    makeDefault
+    position={cameraPosition}
+    fov={isMobile ? 60 : 50}
+    near={0.1}
+    far={100}
+  />
+
                 <ambientLight intensity={0.3} />
                 <pointLight position={[10, 10, 10]} intensity={1} color="#cffafe" />
                 <spotLight position={[-10, 5, 10]} angle={0.3} penumbra={1} intensity={1} castShadow color="#06b6d4" />
                 
                 <Suspense fallback={null}>
-                    <ProductModel
-                        key={currentViewData.id}
-                        modelPath={currentViewData.modelPath}
-                        animationName={currentViewData.animation}
-                        scale={currentViewData.scale}
-                        scrollProgress={scrollProgress}
-                        isMobile={isMobile}
-                    />
+          <ProductModel
+  modelPath={currentViewData.modelPath}
+  scale={
+    isMobile
+      ? currentViewData.scale.mobile
+      : currentViewData.scale.desktop
+  }
+  isMobile={isMobile}
+/>
                     <Environment preset="night" />
                 </Suspense>
 
-                {!isMobile && (
-                    <OrbitControls
-                        ref={controlsRef}
-                        enablePan={false}
-                        enableZoom={true}
-                        autoRotate={autoRotate}
-                        minDistance={2}
-                        maxDistance={8}
-                    />
-                )}
+<OrbitControls
+    ref={controlsRef}
+    enablePan={false}
+    enableZoom={true}
+    autoRotate={autoRotate}
+    minDistance={2}
+    maxDistance={8}
+    enabled={true}
+/>
             </Canvas>
 
-            {/* UI LAYER SOBRE O CANVAS */}
+           
             <div className={`info-overlay ${scrollProgress > 0.1 && scrollProgress < 0.9 ? "visible" : ""}`}>
                 <h2>{currentViewData.title}</h2>
                 <p>{currentViewData.description}</p>
@@ -213,11 +256,11 @@ export default function ProductShowcase() {
                 </div>
             )}
 
-            {/* Navigation Buttons (Desktop) */}
+         
             <button onClick={prevView} className="nav-btn left"><ChevronLeft /></button>
             <button onClick={nextView} className="nav-btn right"><ChevronRight /></button>
             
-             {/* Mobile Overlay Prompt */}
+     
              {isMobile && !isInteractive && (
                 <div className="mobile-tap-overlay" onClick={handleCanvasClick}>
                     <span>👆 Explorar 3D</span>
@@ -227,7 +270,7 @@ export default function ProductShowcase() {
         </div>
       </div>
 
-      {/* ===== TECNOLOGIA (Features) ===== */}
+
       <section className="tech-section">
         <div className="section-header">
             <h2 className="section-title">Engenharia <span>Térmica</span></h2>
@@ -258,7 +301,7 @@ export default function ProductShowcase() {
         </div>
       </section>
 
-      {/* ===== TIMELINE DE CONSTRUÇÃO ===== */}
+
       <section className="build-section">
         <div className="section-header">
             <h2 className="section-title">Processo de <span>Construção</span></h2>
@@ -303,7 +346,6 @@ export default function ProductShowcase() {
         </div>
       </section>
 
-      {/* ===== ESPECIFICAÇÕES TÉCNICAS ===== */}
       <section className="specs-detail-section">
         <div className="section-header">
             <h2 className="section-title">Especificações <span>Técnicas</span></h2>
@@ -337,7 +379,7 @@ export default function ProductShowcase() {
         </div>
       </section>
 
-      {/* ===== CTA FINAL ===== */}
+
       <section className="cta-section" style={{background: '#0b1120'}}>
         <h2 className="cta-title">Projeto Open Source</h2>
         <p className="cta-subtitle">
