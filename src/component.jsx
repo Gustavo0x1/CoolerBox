@@ -19,10 +19,21 @@ import {
   Cpu,
   Wind,
   Settings,
+  Users,
+  Github,
+  Linkedin,
+  ShoppingCart,
+  Image as ImageIcon,
+  Hammer,
+  Mail,
   Box,
+  Tent,
+  CarFront,
+  BriefcaseMedical,
 } from "lucide-react";
 import * as THREE from "three";
 import "./App.css";
+import { color } from "three/tsl";
 function CameraControls({ enabled }) {
   const { camera, gl } = useThree();
 
@@ -47,25 +58,40 @@ function ProductModel({
 }) {
   const group = useRef();
   const { scene, animations } = useGLTF(modelPath);
-  const { actions, mixer } = useAnimations(animations, group);
+  const { actions, mixer, names} = useAnimations(animations, group);
 
-  useEffect(() => {
-    if (!animations.length) return;
+useEffect(() => {
+    if (!animations.length || !actions) return;
+    console.log("Animações disponíveis neste modelo:", names);
+    // Para todas as animações primeiro
     Object.values(actions).forEach((action) => {
-      action.reset();
-      action.setLoop(THREE.LoopOnce, 1);
-      action.clampWhenFinished = true;
-      action.play();
+      if (action) action.stop();
     });
-  }, [actions, animations]);
+    
+    // Pequeno delay para garantir reset
+    const timer = setTimeout(() => {
+      Object.values(actions).forEach((action) => {
+        if (action) {
+          console.log("Executando: ",actions)
+          action.reset();
+          action.setLoop(THREE.LoopOnce, 1);
+          action.clampWhenFinished = true;
+          action.play();
+        }
+      });
+    }, 50);
+    
+    return () => clearTimeout(timer);
+  }, [actions, animations.length, modelPath]); // Muda apenas quando o modelo muda
 
   useFrame((state, delta) => {
     if (mixer) mixer.update(delta);
     if (group.current && isMobile) group.current.rotation.y += delta * 0.2;
   });
-
+console.log(actions);
   return (
     <group ref={group}>
+
       <primitive object={scene} scale={scale} position={position} />
     </group>
   );
@@ -77,7 +103,7 @@ const views = [
     id: "overview",
     title: "Design Térmico",
     description: "Estrutura otimizada para máximo isolamento",
-    modelPath: "./models/produto.glb", 
+    modelPath: "./models/CaixaFinalizada.glb", 
     animation: "Tampa_soloAction",
   'camera': {
       desktop: [3, 3, 4],
@@ -92,7 +118,7 @@ const views = [
     id: "internal",
     title: "Câmara Fria",
     description: "Espaço interno de 15L com revestimento em alumínio",
-    modelPath: "./models/produto.glb",
+    modelPath: "./models/CaixaFinalizada_Open.glb",
     animation: "Abrir",
     camera: {
       desktop: [0, 1, 3],
@@ -108,8 +134,8 @@ const views = [
     id: "system",
     title: "Núcleo Peltier",
     description: "Sistema dual-core de pastilhas TEC1-12706",
-    modelPath: "./models/ifrost_explodedview.glb",
-    animation: "Abrir",
+    modelPath: "./models/CaixaFinalizada_ExplodedView.glb",
+    animation: "Tampa_soloAction",
        camera: {
       desktop: [0, 2, 6],
       mobile: [0, 1.8, 7]
@@ -125,12 +151,51 @@ const views = [
 export default function ProductShowcase() {
   const [currentView, setCurrentView] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
   const [autoRotate, setAutoRotate] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isInteractive, setIsInteractive] = useState(false);
   const controlsRef = useRef();
   const scrollContainerRef = useRef();
-
+const teamMembers = [
+    {
+      name: "Gustavo Soares Rodrigues",
+      email: "gsr21@aluno.ifnmg.edu.br",
+      
+    }
+    ,
+    {
+      name: "Eduardo Alves de Oliveira",
+      email: "eao7@aluno.ifnmg.edu.br",
+     
+    }
+    ,
+    {
+      name: "Gustavo Alves de Oliveira",
+      email: "gao7@aluno.ifnmg.edu.br",
+     
+    }
+    ,
+    {
+      name: "Milena Soares Silva",
+      email: "mss49@aluno.ifnmg.edu.br",
+     
+    }    ,
+     {
+      name: "Matheus de Alencar Veloso ",
+      email: "mav6@aluno.ifnmg.edu.br",
+      
+    }
+    
+  ];
+  const materials = [
+    { item: "Pastilhas Peltier TEC1-12706", qtd: "2 un" },
+    { item: "ESP32 DevKit V1", qtd: "1 un" },
+    { item: "Sensor de Temperatura DS18B20", qtd: "2 un" },
+    { item: "Ventoinhas 120mm Alta Pressão", qtd: "2 un" },
+    { item: "Fonte Chaveada 12V 10A", qtd: "1 un" },
+    { item: "Placas de Isolamento XPS 30mm", qtd: "1 m²" },
+  ];
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
@@ -169,7 +234,20 @@ export default function ProductShowcase() {
       document.body.style.overflow = "hidden";
     }
   };
+const carouselRef = useRef(null);
 
+  const handleScroll = (direction) => {
+    if (carouselRef.current) {
+      const { current } = carouselRef;
+      // Define quanto rolar por clique (aprox o tamanho de uma imagem + gap)
+      const scrollAmount = 320; 
+      
+      current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
   const handleCloseInteractive = () => {
     setIsInteractive(false);
     document.body.style.overflow = "auto";
@@ -184,7 +262,7 @@ export default function ProductShowcase() {
 
       <section className="hero-section">
         <div className="hero-bg-glow" />
-        <span className="hero-tagline">Projeto: FrostBox</span>
+        <span className="hero-tagline">Projeto: HealthBox</span>
         <h1 className="hero-title">REFRIGERAÇÃO<br/>PORTÁTIL</h1>
         <p className="hero-subtitle">
           Coolerbox termoelétrica construída com tecnologia Peltier.
@@ -199,7 +277,8 @@ export default function ProductShowcase() {
 
       <div ref={scrollContainerRef} className="scroll-container">
         <div className="sticky-canvas-wrapper">
-          <div className="canvas-container">
+          <div className="canvas-container" onMouseDown={() => setIsInteractive(true)}
+  onMouseLeave={() => setIsInteractive(false)} >
 
              <Canvas shadows>
  <PerspectiveCamera
@@ -230,9 +309,9 @@ export default function ProductShowcase() {
 
 <OrbitControls
     ref={controlsRef}
-    enablePan={false}
-    enableZoom={true}
-    autoRotate={autoRotate}
+    enablePan={true}
+    enableZoom={isInteractive} 
+    autoRotate={autoRotate && !isInteractive}
     minDistance={2}
     maxDistance={8}
     enabled={true}
@@ -240,16 +319,11 @@ export default function ProductShowcase() {
             </Canvas>
 
            
-            <div className={`info-overlay ${scrollProgress > 0.1 && scrollProgress < 0.9 ? "visible" : ""}`}>
-                <h2>{currentViewData.title}</h2>
-                <p>{currentViewData.description}</p>
-            </div>
+  
             
             {!isMobile && (
                 <div className="controls-wrapper">
-                    <button onClick={() => setAutoRotate(!autoRotate)} className={`control-btn ${autoRotate ? 'active' : ''}`}>
-                        <RotateCw />
-                    </button>
+                
                     <button onClick={resetCamera} className="control-btn">
                         <Maximize2 />
                     </button>
@@ -270,11 +344,136 @@ export default function ProductShowcase() {
         </div>
       </div>
 
+<section className="galeria-section" style={{ padding: '4rem 0', position: 'relative' }}>
+        <h2 style={{ textAlign: 'center', marginBottom: '2rem' }}>Nossa <span style={{color:"#06b6d4"}}>Galeria</span></h2>
+        
+        {/* Wrapper com position relative para prender os botões absolutos aqui dentro */}
+        <div className="galeria-wrapper" style={{ position: 'relative', maxWidth: '1200px', margin: '0 auto' }}>
+          
+          {/* Botão Esquerda (Renomeado e Estilizado) */}
+          <button 
+            onClick={() => handleScroll('left')}
+            aria-label="Anterior"
+            style={{
+              position: 'absolute',
+              left: '10px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 10,
+              background: 'rgba(0,0,0,0.7)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '50%',
+              width: '40px',
+              height: '40px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1.5rem'
+            }}
+          >
+            &#10094;
+          </button>
+  
+          {/* Container de Scroll */}
+          <div 
+            ref={carouselRef}
+            className="galeria-container" 
+            style={{
+              display: 'flex',
+              gap: '1rem',
+              overflowX: 'auto',
+              scrollBehavior: 'smooth',
+              padding: '1rem',
+              scrollbarWidth: 'none', // Firefox
+              msOverflowStyle: 'none'  // IE/Edge
+            }}
+          >
+            {/* Esconde a barra de rolagem no Chrome/Safari */}
+            <style>
+              {`
+                .galeria-container::-webkit-scrollbar {
+                  display: none;
+                }
+              `}
+            </style>
 
+       {[
+  "/img/1.jpeg",
+  "/img/2.jpeg",
+  "/img/3.jpeg",
+  "/img/4.jpeg",
+  "/img/5.jpeg",
+  "/img/6.jpeg",
+  "/img/7.jpeg",
+  "/img/8.jpeg",
+
+  "/img/10.jpeg",
+].map((src, index) => (
+  <div 
+    key={index} 
+    className="galeria-item"
+    // Adicione o onClick aqui:
+    onClick={() => setSelectedImage(src)}
+    style={{
+      flex: '0 0 auto',
+      width: '300px',
+      height: '200px',
+      borderRadius: '12px',
+      overflow: 'hidden',
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+      cursor: 'pointer' // <--- Adicione cursor pointer para indicar clique
+    }}
+  >
+    <img 
+      src={src} 
+      alt={`Foto ${index + 1}`} 
+      style={{
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        transition: 'transform 0.3s',
+        pointerEvents: 'none' // Evita conflito de arraste vs clique
+      }}
+      onMouseOver={(e) => e.target.parentElement.style.transform = 'scale(1.02)'} // Efeito sutil no container
+      onMouseOut={(e) => e.target.parentElement.style.transform = 'scale(1)'}
+    />
+  </div>
+))}
+          </div>
+  
+          {/* Botão Direita (Renomeado e Estilizado) */}
+          <button 
+            onClick={() => handleScroll('right')}
+            aria-label="Próximo"
+            style={{
+              position: 'absolute',
+              right: '10px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 10,
+              background: 'rgba(0,0,0,0.7)',
+              color: 'white',
+              border: 'none',
+              borderRadius: '50%',
+              width: '40px',
+              height: '40px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1.5rem'
+            }}
+          >
+            &#10095;
+          </button>
+        </div>
+      </section>
       <section className="tech-section">
         <div className="section-header">
             <h2 className="section-title">Engenharia <span>Térmica</span></h2>
-            <p className="hero-subtitle" style={{margin:'0 auto'}}>Como transformamos eletricidade em frio extremo.</p>
+            <p className="hero-subtitle" style={{margin:'0 auto'}}>Como transformamos eletricidade em redução de temperatura.</p>
         </div>
         
         <div className="tech-grid">
@@ -286,109 +485,303 @@ export default function ProductShowcase() {
             <div className="tech-card">
                 <Wind className="tech-icon" />
                 <h3>Dissipação Ativa</h3>
-                <p>Dois coolers de alta rotação (2500 RPM) acoplados a dissipadores de alumínio garantem que o lado quente não sature, maximizando o Delta T.</p>
+                <p>Dois coolers acoplados a dissipadores de alumínio garantem que o lado quente não superaqueça e gera uma convecção forçada no interiro da caixa.</p>
             </div>
             <div className="tech-card">
                 <Cpu className="tech-icon" />
                 <h3>Controle Digital</h3>
-                <p>Microcontrolador <strong>ESP32</strong> monitora temperaturas internas e externas, ajustando a potência das ventoinhas via PWM para economizar bateria.</p>
+                <p>Microcontrolador <strong>ESP32</strong> monitora temperaturas internas e externas, ajustando a potência das placas via PWM para economizar bateria.</p>
             </div>
             <div className="tech-card">
                 <Box className="tech-icon" />
-                <h3>Isolamento XPS</h3>
-                <p>Paredes triplas com espuma de poliestireno extrudado (XPS) de 30mm garantem retenção térmica por até 8 horas desligado.</p>
+                <h3>Isolamento triplo</h3>
+                <p>O isolamento térmico da caixa consiste na união de cortiça, fibra de alumínio e  espuma de poliuretano.</p>
             </div>
         </div>
       </section>
 
-
-      <section className="build-section">
+<section className="build-section">
         <div className="section-header">
-            <h2 className="section-title">Processo de <span>Construção</span></h2>
+            <h2 className="section-title">Roadmap do <span>Projeto</span></h2>
+            <p className="hero-subtitle" style={{margin:'0 auto'}}>O futuro e a evolução do HealthBox.</p>
         </div>
 
         <div className="build-timeline">
+            {/* --- CURTO PRAZO --- */}
             <div className="build-step">
-                <div className="step-number">01</div>
+                {/* Badge substitui o círculo numérico */}
+                <div style={{
+                    background: 'rgba(6, 182, 212, 0.1)', 
+                    color: '#06b6d4',                      
+                    border: '1px solid #06b6d4',
+                    padding: '8px 16px',                   
+                    borderRadius: '50px',                  
+                    fontSize: '0.85rem',
+                    fontWeight: 'bold',
+                    whiteSpace: 'nowrap',                  
+                    textAlign: 'center',
+                    minWidth: '110px',                     
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 0 10px rgba(6,182,212,0.2)'
+                }}>
+                    Curto Prazo
+                </div>
+
                 <div className="step-content">
                     <div className="step-tags">
-                        <span className="tag">CAD 3D</span>
-                        <span className="tag">Planejamento</span>
+                        <span className="tag">CAD</span>
+                        <span className="tag">Mecânica</span>
                     </div>
-                    <h3>Prototipagem Digital</h3>
-                    <p>Desenho da carcaça e simulação de fluxo de ar para garantir que os dissipadores tenham ventilação adequada sem trocar calor com a câmara fria.</p>
+                    <h3>Modelo base</h3>
+        <p>Desenvolvimento da estrutura física e isolamento térmico inicial. Validação das dimensões para acomodar as pastilhas e dissipadores além do espaço adequado para o fluxo de ar e para o conteúdo efetivo.</p>
+                </div>
+            </div>
+
+     
+            <div className="build-step">
+                <div style={{
+                    background: 'rgba(6, 182, 212, 0.1)',
+                    color: '#06b6d4',
+                    border: '1px solid #06b6d4',
+                    padding: '8px 16px',
+                    borderRadius: '50px',
+                    fontSize: '0.85rem',
+                    fontWeight: 'bold',
+                    whiteSpace: 'nowrap',
+                    textAlign: 'center',
+                    minWidth: '110px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 0 10px rgba(6,182,212,0.2)'
+                }}>
+                    Médio Prazo
+                </div>
+
+                <div className="step-content">
+                    <div className="step-tags">
+                        <span className="tag">Hardware</span>
+                        <span className="tag">Software</span>
+                    </div>
+                    <h3>Controle PWM</h3>
+                    <p>Desenvolver um módulo de controle PWM para controlar o consumo das pastilhas com base na temperatura</p>
                 </div>
             </div>
 
             <div className="build-step">
-                <div className="step-number">02</div>
-                <div className="step-content">
-                    <div className="step-tags">
-                        <span className="tag">Corte</span>
-                        <span className="tag">Montagem</span>
-                    </div>
-                    <h3>Estrutura e Isolamento</h3>
-                    <p>Corte das placas de XPS e revestimento interno com fita de alumínio para reflexão térmica. A carcaça externa foi impressa em PETG para resistência mecânica.</p>
+                <div style={{
+                    background: 'rgba(6, 182, 212, 0.1)',
+                    color: '#06b6d4',
+                    border: '1px solid #06b6d4',
+                    padding: '8px 16px',
+                    borderRadius: '50px',
+                    fontSize: '0.85rem',
+                    fontWeight: 'bold',
+                    whiteSpace: 'nowrap',
+                    textAlign: 'center',
+                    minWidth: '110px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 0 10px rgba(6,182,212,0.2)'
+                }}>
+                    Longo Prazo
                 </div>
-            </div>
 
-            <div className="build-step">
-                <div className="step-number">03</div>
                 <div className="step-content">
                     <div className="step-tags">
-                        <span className="tag">Eletrônica</span>
-                        <span className="tag">Soldagem</span>
+                        <span className="tag">Autonomia</span>
+                        <span className="tag">Gerenciamento de energia</span>
                     </div>
-                    <h3>Integração do Sistema</h3>
-                    <p>Instalação das pastilhas Peltier com pasta térmica de prata. Conexão do módulo relé e sensores DS18B20 ao Arduino/ESP32.</p>
+                    <h3>Portabilidade</h3>
+                    <p>Permitir que o produto seja portatil através da adição de baterias. Melhorias estruturais para comportar baterias.  Redução do consumo para aumentar a autonomia.</p>
                 </div>
             </div>
         </div>
       </section>
 
-      <section className="specs-detail-section">
+
+
+<section className="team-section" style={{ padding: '4rem 2rem' }}>
         <div className="section-header">
-            <h2 className="section-title">Especificações <span>Técnicas</span></h2>
+            {/* Sugestão de nome: "Desenvolvedores" ou "Ficha Técnica" */}
+            <h2 className="section-title"><span>Equipe</span></h2>
         </div>
-        
-        <div className="specs-container">
-            <div className="spec-row">
-                <span className="spec-label">Capacidade de Resfriamento (Delta T)</span>
-                <span className="spec-value">-22°C vs Ambiente</span>
-            </div>
-            <div className="spec-row">
-                <span className="spec-label">Consumo de Energia (Pico)</span>
-                <span className="spec-value">120 Watts (12V @ 10A)</span>
-            </div>
-            <div className="spec-row">
-                <span className="spec-label">Volume Interno</span>
-                <span className="spec-value">15 Litros</span>
-            </div>
-            <div className="spec-row">
-                <span className="spec-label">Autonomia (Bateria 60Ah)</span>
-                <span className="spec-value">~5 Horas</span>
-            </div>
-            <div className="spec-row">
-                <span className="spec-label">Peso Total</span>
-                <span className="spec-value">4.2 kg</span>
-            </div>
-            <div className="spec-row">
-                <span className="spec-label">Material Isolante</span>
-                <span className="spec-value">XPS 30mm + Alumínio</span>
-            </div>
+
+        <div className="tech-grid" style={{ 
+            display: 'flex', 
+            flexWrap: 'wrap', 
+            justifyContent: 'center', 
+            gap: '1.5rem' 
+        }}>
+            {teamMembers.map((member, idx) => (
+                <div key={idx} className="tech-card" style={{ 
+                    textAlign: 'left', // Alinhamento à esquerda fica mais elegante para listas
+                    minWidth: '280px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    padding: '2rem',
+                    borderLeft: '4px solid #06b6d4' // Detalhe lateral colorido para dar estilo sem foto
+                }}>
+                    
+                    <h3 style={{ 
+                        fontSize: '1.4rem', 
+                        marginBottom: '0.5rem',
+                        color: '#f8fafc' 
+                    }}>
+                        {member.name}
+                    </h3>
+                    
+                    <p href={`${member.email}`} style={{ 
+                        color: '#94a3b8', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '0.5rem',
+                        textDecoration: 'none',
+                        fontSize: '0.95rem',
+                        transition: 'color 0.2s'
+                    }}
+                    onMouseOver={(e) => e.currentTarget.style.color = '#06b6d4'}
+                    onMouseOut={(e) => e.currentTarget.style.color = '#94a3b8'}
+                    >
+                        <Mail size={16} />
+                        {member.email}
+                    </p>
+
+                </div>
+            ))}
         </div>
       </section>
+{selectedImage && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'rgba(0, 0, 0, 0.9)', // Fundo escuro
+            zIndex: 9999, // Bem alto para ficar acima de tudo
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'zoom-out'
+          }}
+          onClick={() => setSelectedImage(null)} // Clicar no fundo fecha
+        >
+          {/* Botão Fechar */}
+          <button
+            style={{
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+              background: 'transparent',
+              border: 'none',
+              color: 'white',
+              cursor: 'pointer'
+            }}
+          >
+            <X size={40} />
+          </button>
+
+          {/* Imagem Ampliada */}
+          <img 
+            src={selectedImage} 
+            alt="Ampliada"
+            style={{
+              maxWidth: '90%',
+              maxHeight: '90%',
+              objectFit: 'contain', // Garante que a imagem caiba na tela sem distorcer
+              borderRadius: '8px',
+              boxShadow: '0 0 20px rgba(0,0,0,0.5)',
+              cursor: 'default' // Clicar na imagem não deve fechar (opcional)
+            }}
+            onClick={(e) => e.stopPropagation()} // Impede que o clique na imagem feche o modal
+          />
+        </div>
+      )}
+<footer style={{
+        backgroundColor: '#0f172a', // Fundo escuro (Slate 900)
+        color: '#94a3b8',           // Texto cinza suave
+        padding: '4rem 2rem 2rem',
+        borderTop: '1px solid #1e293b',
+        marginTop: 'auto'
+      }}>
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gap: '3rem',
+          marginBottom: '3rem'
+        }}>
+          {/* Coluna 1: Identidade */}
+          <div>
+            <h3 style={{ 
+              color: '#f8fafc', 
+              fontSize: '1.5rem', 
+              marginBottom: '1rem', 
+              display:'flex', 
+              alignItems:'center', 
+              gap:'10px' 
+            }}>
+              <Zap color="#06b6d4" fill="#06b6d4" /> HealthBox
+            </h3>
+            <p style={{ lineHeight: '1.6', fontSize: '0.95rem' }}>
+              Soluções em refrigeração portátil de alta eficiência. 
+              Unindo engenharia térmica e eletrônica embarcada.
+            </p>
+          </div>
+
+          {/* Coluna 2: Links Rápidos */}
+          <div></div>
+          <div>
+            <h4 style={{ color: '#f8fafc', marginBottom: '1.2rem', fontSize: '1.1rem' }}>Projeto</h4>
+            <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+              {['Visão Geral', 'Especificações', 'Galeria', 'Equipe'].map((item) => (
+                <li key={item}>
+                  <a href="#" style={{ 
+                    color: 'inherit', 
+                    textDecoration: 'none', 
+                    transition: 'color 0.2s',
+                    fontSize: '0.95rem' 
+                  }}
+                  onMouseOver={(e) => e.target.style.color = '#06b6d4'}
+                  onMouseOut={(e) => e.target.style.color = 'inherit'}
+                  >
+                    {item}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
 
 
-      <section className="cta-section" style={{background: '#0b1120'}}>
-        <h2 className="cta-title">Projeto Open Source</h2>
-        <p className="cta-subtitle">
-          Os arquivos STL e o código fonte do controlador estão disponíveis no GitHub.
-        </p>
-        <button className="cta-button">
-          <span>Ver Repositório</span>
-        </button>
-      </section>
+        </div>
+
+        {/* Barra de Direitos Autorais */}
+        <div style={{
+          borderTop: '1px solid #1e293b',
+          paddingTop: '2rem',
+          textAlign: 'center',
+          fontSize: '0.9rem',
+          display: 'flex',
+          flexWrap: 'wrap',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: '1rem'
+        }}>
+          <p>&copy; {new Date().getFullYear()} HealthBox Project. Todos os direitos reservados.</p>
+          
+          <div style={{ display: 'flex', gap: '1.5rem' }}>
+            <span style={{ cursor: 'pointer' }}>Termos</span>
+            <span style={{ cursor: 'pointer' }}>Privacidade</span>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

@@ -875,3 +875,44 @@
     transform: translateX(-50%) translateY(-5px);
   }
 }
+.galeria-section {
+  padding: 2rem 0;
+  text-align: center;
+}
+
+.galeria-container {
+  display: flex;
+  gap: 1rem;              /* Espaço entre as imagens */
+  overflow-x: auto;       /* Habilita rolagem horizontal */
+  scroll-snap-type: x mandatory; /* Faz a imagem "travar" no centro ao soltar */
+  padding: 1rem;
+  
+  /* Esconde a barra de rolagem (opcional) */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.galeria-container::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.galeria-item {
+  flex: 0 0 80%; /* Define que cada imagem ocupa 80% da tela (mostra um pedaço da próxima) */
+  scroll-snap-align: center; /* Centraliza a imagem ao parar de rolar */
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+/* Em telas maiores (Desktop), mostrar 3 imagens por vez, por exemplo */
+@media (min-width: 768px) {
+  .galeria-item {
+    flex: 0 0 300px; /* Tamanho fixo no desktop */
+  }
+}
+
+.galeria-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
