@@ -345,7 +345,7 @@ const carouselRef = useRef(null);
       </div>
 
 <section className="galeria-section" style={{ padding: '4rem 0', position: 'relative' }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '2rem' }}>Nossa <span style={{color:"#06b6d4"}}>Galeria</span></h2>
+        <h2 style={{ textAlign: 'center', marginBottom: '2rem' }}>Processo <span style={{color:"#06b6d4"}}>Criativo</span></h2>
         
         {/* Wrapper com position relative para prender os botões absolutos aqui dentro */}
         <div className="galeria-wrapper" style={{ position: 'relative', maxWidth: '1200px', margin: '0 auto' }}>
