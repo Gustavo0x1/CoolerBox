@@ -62,7 +62,7 @@ function ProductModel({
 
 useEffect(() => {
     if (!animations.length || !actions) return;
-    console.log("Animações disponíveis neste modelo:", names);
+    
     // Para todas as animações primeiro
     Object.values(actions).forEach((action) => {
       if (action) action.stop();
@@ -72,7 +72,7 @@ useEffect(() => {
     const timer = setTimeout(() => {
       Object.values(actions).forEach((action) => {
         if (action) {
-          console.log("Executando: ",actions)
+
           action.reset();
           action.setLoop(THREE.LoopOnce, 1);
           action.clampWhenFinished = true;
@@ -262,10 +262,10 @@ const carouselRef = useRef(null);
 
       <section className="hero-section">
         <div className="hero-bg-glow" />
-        <span className="hero-tagline">Projeto: HealthBox</span>
-        <h1 className="hero-title">REFRIGERAÇÃO<br/>PORTÁTIL</h1>
+        <span className="hero-tagline">Projeto integrador</span>
+        <h1 className="hero-title">HealthBox<br/></h1>
         <p className="hero-subtitle">
-          Coolerbox termoelétrica construída com tecnologia Peltier.
+    REFRIGERAÇÃO PORTATIL
         </p>
 
       </section>
@@ -610,46 +610,55 @@ const carouselRef = useRef(null);
             <h2 className="section-title"><span>Equipe</span></h2>
         </div>
 
-        <div className="tech-grid" style={{ 
-            display: 'flex', 
-            flexWrap: 'wrap', 
-            justifyContent: 'center', 
-            gap: '1.5rem' 
+<div className="tech-grid" style={{ 
+            display: 'grid', // MUDANÇA 1: Usar Grid em vez de Flex
+            // Isso cria colunas automáticas que têm no mínimo 280px e dividem o espaço restante igualmente
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
+            gap: '1.5rem',
+            width: '100%',       // Garante uso da largura total
+            maxWidth: '1200px',  // Opcional: centraliza se a tela for muito grande
+            margin: '0 auto'
         }}>
             {teamMembers.map((member, idx) => (
                 <div key={idx} className="tech-card" style={{ 
-                    textAlign: 'left', // Alinhamento à esquerda fica mais elegante para listas
-                    minWidth: '280px',
+                    textAlign: 'left',
+                    // minWidth: '280px', // REMOVIDO: O Grid já controla a largura
+                    height: '100%',       // MUDANÇA 2: Força todos a terem a altura do maior card
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'center',
                     padding: '2rem',
-                    borderLeft: '4px solid #06b6d4' // Detalhe lateral colorido para dar estilo sem foto
+                    borderLeft: '4px solid #06b6d4',
+                    background: 'rgba(255, 255, 255, 0.03)', // Sugestão visual para ver o tamanho do card
+                    boxSizing: 'border-box'
                 }}>
                     
                     <h3 style={{ 
                         fontSize: '1.4rem', 
                         marginBottom: '0.5rem',
-                        color: '#f8fafc' 
+                        color: '#f8fafc',
+                        // Opcional: Se o nome for MUITO longo, evita quebrar o layout
+                        wordBreak: 'break-word' 
                     }}>
                         {member.name}
                     </h3>
                     
-                    <p href={`${member.email}`} style={{ 
+                    <a href={`mailto:${member.email}`} style={{ // Mudei 'p' para 'a' para o link funcionar
                         color: '#94a3b8', 
                         display: 'flex', 
                         alignItems: 'center', 
                         gap: '0.5rem',
                         textDecoration: 'none',
                         fontSize: '0.95rem',
-                        transition: 'color 0.2s'
+                        transition: 'color 0.2s',
+                        cursor: 'pointer'
                     }}
                     onMouseOver={(e) => e.currentTarget.style.color = '#06b6d4'}
                     onMouseOut={(e) => e.currentTarget.style.color = '#94a3b8'}
                     >
                         <Mail size={16} />
                         {member.email}
-                    </p>
+                    </a>
 
                 </div>
             ))}
